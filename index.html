@@ -31,12 +31,11 @@
 </head>
 <body>
   <h1>Sounny OSM Batch Geocoder</h1>
-  <!-- Default text added here -->
   <textarea id="addressTextArea" rows="10" cols="50" oninput="limitLines(this, 100)">Austin, Texas
 Paris, France
-Marrakech, Morocco
-Miami, Florida</textarea><br>
+Marrakech, Morocco</textarea><br>
   <button id="geocodeButton">Geocode</button>
+  <button id="saveCSVButton">Save as CSV</button>
   <table id="resultTable">
     <thead>
       <tr>
@@ -83,6 +82,23 @@ Miami, Florida</textarea><br>
             newRow.insertCell(2).innerText = data[0].lon;
           }
         }
+      });
+
+      // New function for saving table as CSV
+      document.getElementById("saveCSVButton").addEventListener("click", function() {
+        const rows = Array.from(document.querySelectorAll("#resultTable tr"));
+        const csvContent = rows.map(row => {
+          return Array.from(row.querySelectorAll("td, th")).map(cell => cell.innerText).join(",");
+        }).join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "geocoded_addresses.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       });
     });
   </script>
