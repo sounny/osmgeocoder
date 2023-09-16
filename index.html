@@ -3,6 +3,11 @@
 <head>
   <title>Sounny OSM Batch Geocoder</title>
   <style>
+    h1, #instructions, textarea, button {
+      text-align: center;
+      margin: auto;
+    }
+
     button {
       background-color: #007bff;
       color: white;
@@ -31,10 +36,12 @@
 </head>
 <body>
   <h1>Sounny OSM Batch Geocoder</h1>
+  <p id="instructions">Batch Geocode Places, addresses, cities, zip code by putting 1 place per line.</p>
   <textarea id="addressTextArea" rows="10" cols="50" oninput="limitLines(this, 100)">Austin, Texas
 Paris, France
 Marrakech, Morocco</textarea><br>
   <button id="geocodeButton">Geocode</button>
+  <button id="resetButton">Reset</button>
   <button id="saveCSVButton">Save as CSV</button>
   <table id="resultTable">
     <thead>
@@ -61,7 +68,7 @@ Marrakech, Morocco</textarea><br>
         const addressText = document.getElementById("addressTextArea").value;
         const addresses = addressText.split("\n");
         const resultBody = document.getElementById("resultBody");
-        
+
         // Clear previous results
         resultBody.innerHTML = "";
         
@@ -84,7 +91,6 @@ Marrakech, Morocco</textarea><br>
         }
       });
 
-      // New function for saving table as CSV
       document.getElementById("saveCSVButton").addEventListener("click", function() {
         const rows = Array.from(document.querySelectorAll("#resultTable tr"));
         const csvContent = rows.map(row => {
@@ -99,6 +105,12 @@ Marrakech, Morocco</textarea><br>
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+      });
+
+      // Reset button functionality
+      document.getElementById("resetButton").addEventListener("click", function() {
+        document.getElementById("addressTextArea").value = "";
+        document.getElementById("resultBody").innerHTML = "";
       });
     });
   </script>
