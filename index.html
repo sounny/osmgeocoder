@@ -3,15 +3,13 @@
 <head>
   <title>Sounny OSM Batch Geocoder</title>
   <style>
-    h1, #instructions, #centerDiv, #buttonDiv {
+    h1, p, textarea, #buttonDiv {
       text-align: center;
       margin: auto;
     }
-    
     textarea {
       text-align: left;
     }
-
     button {
       background-color: #007bff;
       color: white;
@@ -21,19 +19,19 @@
       cursor: pointer;
       margin: 5px;
     }
-
     table {
-      width: 100%;
+      width: 90%;
+      margin: auto;
       border-collapse: collapse;
-      margin-top: 20px;
     }
-
+    th:nth-child(2), th:nth-child(3) {
+      width: 150px;
+    }
     th, td {
       border: 1px solid #ccc;
       padding: 8px;
       text-align: left;
     }
-
     th {
       background-color: #f2f2f2;
     }
@@ -42,21 +40,15 @@
 <body>
 
   <h1>Sounny OSM Batch Geocoder</h1>
-  <br>
-  <p id="instructions">Batch Geocode places by putting one place per line</p>
-  
-  <div id="centerDiv">
-    <textarea id="addressTextArea" rows="10" cols="50" oninput="limitLines(this, 100)">Austin, Texas
+  <p>Batch Geocode Places, addresses, cities, zip code by putting 1 place per line.</p>
+  <textarea id="addressTextArea" rows="10" cols="50" oninput="limitLines(this, 100)">Austin, Texas
 Paris, France
 Marrakech, Morocco</textarea><br>
-  </div>
-  
   <div id="buttonDiv">
     <button id="geocodeButton">Geocode</button>
     <button id="resetButton">Reset</button>
     <button id="saveCSVButton">Save as CSV</button>
   </div>
-  
   <table id="resultTable">
     <thead>
       <tr>
@@ -77,26 +69,11 @@ Marrakech, Morocco</textarea><br>
       }
     }
 
-    function downloadCSV(csv, filename) {
-      let csvFile;
-      let downloadLink;
-
-      csvFile = new Blob([csv], {type: "text/csv"});
-      downloadLink = document.createElement("a");
-      downloadLink.download = filename;
-      downloadLink.href = window.URL.createObjectURL(csvFile);
-      downloadLink.style.display = "none";
-
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-    }
-
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById("geocodeButton").addEventListener("click", async function() {
         const addressText = document.getElementById("addressTextArea").value;
         const addresses = addressText.split("\n");
         const resultBody = document.getElementById("resultBody");
-        
         resultBody.innerHTML = "";
         
         for (const address of addresses) {
@@ -119,27 +96,33 @@ Marrakech, Morocco</textarea><br>
       });
 
       document.getElementById("resetButton").addEventListener("click", function() {
-        document.getElementById("addressTextArea").value = "";
-        document.getElementById("resultBody").innerHTML = "";
+        document.getElementById("addressTextArea").value = '';
+        document.getElementById("resultBody").innerHTML = '';
       });
 
       document.getElementById("saveCSVButton").addEventListener("click", function() {
-        let csv = 'Address,Latitude,Longitude\n';
-        let rows = document.querySelectorAll("table tr");
+        let csvContent = 'Address,Latitude,Longitude\n';
+        const rows = document.querySelectorAll("#resultTable tbody tr");
         
-        for (let i = 1; i < rows.length; i++) {
-          let row = [], cols = rows[i].querySelectorAll("td");
-          
-          for (let j = 0; j < cols.length; j++) 
-              row.push(cols[j].innerText);
-          
-          csv += row.join(",") + "\n";
-        }
-        
-        downloadCSV(csv, 'addresses.csv');
+        rows.forEach(row => {
+          const rowData = [];
+          row.querySelectorAll('td').forEach(cell => {
+            rowData.push(cell.innerText);
+          });
+          csvContent += rowData.join(',') + '\n';
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "geocode_results.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       });
     });
   </script>
-
 </body>
 </html>
