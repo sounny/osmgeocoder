@@ -54,9 +54,10 @@ Paris, France
 Marrakech, Morocco</textarea><br>
   <div id="buttonDiv">
     <button id="geocodeButton">Geocode</button>
-    <button id="resetButton">Reset</button>
-    <button id="zoomExtentButton">Zoom Extent</button>
+	<button id="zoomExtentButton">Zoom to Extent</button>
     <button id="saveCSVButton">Save as CSV</button>
+    <button id="saveGeoJSONButton">Save as GeoJSON</button>
+	<button id="resetButton">Reset</button>
   </div>
   <table id="resultTable">
     <thead>
@@ -143,7 +144,7 @@ Marrakech, Morocco</textarea><br>
               newRow.classList.add("highlight");
               selectedRow = newRow;
 
-              // Set a specific zoom level when clicking the table row
+              // Center and zoom halfway to the marker
               const markerLatLng = marker.getLatLng();
               map.setView(markerLatLng, 10);
             });
@@ -192,9 +193,48 @@ Marrakech, Morocco</textarea><br>
         document.body.removeChild(link);
       });
 
-      // Add click event to "Zoom Extent" button
+      document.getElementById("saveGeoJSONButton").addEventListener("click", function () {
+        const geoJSONData = {
+          type: "FeatureCollection",
+          features: [],
+        };
+
+        // Iterate through rows and create features
+        const rows = document.querySelectorAll("#resultTable tbody tr");
+        rows.forEach((row) => {
+          const cells = row.querySelectorAll("td");
+          const place = cells[0].innerText;
+          const latitude = parseFloat(cells[1].innerText);
+          const longitude = parseFloat(cells[2].innerText);
+
+          const feature = {
+            type: "Feature",
+            properties: {
+              Place: place,
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [longitude, latitude],
+            },
+          };
+
+          geoJSONData.features.push(feature);
+        });
+
+        // Create a Blob for GeoJSON data and trigger download
+        const geoJSONBlob = new Blob([JSON.stringify(geoJSONData)], { type: "application/geo+json" });
+        const geoJSONLink = document.createElement("a");
+        const geoJSONUrl = URL.createObjectURL(geoJSONBlob);
+        geoJSONLink.setAttribute("href", geoJSONUrl);
+        geoJSONLink.setAttribute("download", "geocode_results.geojson");
+        geoJSONLink.style.visibility = "hidden";
+        document.body.appendChild(geoJSONLink);
+        geoJSONLink.click();
+        document.body.removeChild(geoJSONLink);
+      });
+
       document.getElementById("zoomExtentButton").addEventListener("click", function () {
-        // Adjust map bounds to fit all markers (zoom to extent)
+        // Adjust map bounds to fit all markers
         if (markers.length > 0) {
           map.fitBounds(L.featureGroup(markers).getBounds());
         }
