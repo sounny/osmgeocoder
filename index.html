@@ -43,8 +43,8 @@
       height: 400px;
     }
   </style>
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
   <h1>Sounny OSM Batch Geocoder</h1>
@@ -72,6 +72,7 @@ Marrakech, Morocco</textarea><br>
   <script>
     let map; // Variable to hold the Leaflet map object
     let markers = []; // Array to store marker objects
+    let selectedRow; // Store the selected row
 
     function initMap() {
       map = L.map("map").setView([0, 0], 2); // Initialize the map with a global view
@@ -90,12 +91,15 @@ Marrakech, Morocco</textarea><br>
         const addresses = addressText.split("\n");
         const resultBody = document.getElementById("resultBody");
 
-        // Clear previous results and markers
+        // Clear previous results, markers, and selected row
         resultBody.innerHTML = "";
         markers.forEach((marker) => {
           map.removeLayer(marker);
         });
         markers = [];
+        if (selectedRow) {
+          selectedRow.classList.remove("highlight");
+        }
 
         for (const address of addresses) {
           const params = new URLSearchParams({
@@ -116,6 +120,15 @@ Marrakech, Morocco</textarea><br>
             // Create a marker for the latitude and longitude
             const marker = L.marker([data[0].lat, data[0].lon]).addTo(map);
             markers.push(marker);
+
+            // Add click event to marker
+            marker.on("click", function () {
+              if (selectedRow) {
+                selectedRow.classList.remove("highlight");
+              }
+              newRow.classList.add("highlight");
+              selectedRow = newRow;
+            });
           }
         }
         // Adjust map bounds to fit all markers
@@ -128,11 +141,14 @@ Marrakech, Morocco</textarea><br>
         document.getElementById("addressTextArea").value = "";
         document.getElementById("resultBody").innerHTML = "";
 
-        // Clear markers when resetting
+        // Clear markers and selected row when resetting
         markers.forEach((marker) => {
           map.removeLayer(marker);
         });
         markers = [];
+        if (selectedRow) {
+          selectedRow.classList.remove("highlight");
+        }
       });
 
       document.getElementById("saveCSVButton").addEventListener("click", function () {
@@ -166,5 +182,11 @@ Marrakech, Morocco</textarea><br>
       }
     }
   </script>
+  <style>
+    /* Highlighted row style */
+    .highlight {
+      background-color: #ffcccc;
+    }
+  </style>
 </body>
 </html>
