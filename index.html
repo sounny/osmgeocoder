@@ -55,6 +55,7 @@ Marrakech, Morocco</textarea><br>
   <div id="buttonDiv">
     <button id="geocodeButton">Geocode</button>
     <button id="resetButton">Reset</button>
+    <button id="zoomExtentButton">Zoom Extent</button>
     <button id="saveCSVButton">Save as CSV</button>
   </div>
   <table id="resultTable">
@@ -133,6 +134,19 @@ Marrakech, Morocco</textarea><br>
               const markerLatLng = marker.getLatLng();
               map.setView(markerLatLng, map.getZoom() + 2);
             });
+
+            // Add click event to table row
+            newRow.addEventListener("click", function () {
+              if (selectedRow) {
+                selectedRow.classList.remove("highlight");
+              }
+              newRow.classList.add("highlight");
+              selectedRow = newRow;
+
+              // Set a specific zoom level when clicking the table row
+              const markerLatLng = marker.getLatLng();
+              map.setView(markerLatLng, 10);
+            });
           }
         }
         // Adjust map bounds to fit all markers
@@ -177,6 +191,14 @@ Marrakech, Morocco</textarea><br>
         link.click();
         document.body.removeChild(link);
       });
+
+      // Add click event to "Zoom Extent" button
+      document.getElementById("zoomExtentButton").addEventListener("click", function () {
+        // Adjust map bounds to fit all markers (zoom to extent)
+        if (markers.length > 0) {
+          map.fitBounds(L.featureGroup(markers).getBounds());
+        }
+      });
     });
 
     function limitLines(textarea, maxLines) {
@@ -187,9 +209,8 @@ Marrakech, Morocco</textarea><br>
     }
   </script>
   <style>
-    /* Highlighted row style */
     .highlight {
-      background-color: #ffcccc;
+      background-color: #ffff99;
     }
   </style>
 </body>
