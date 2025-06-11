@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sounny OSM Batch Geocoder</title>
   <style>
     h1, p, #buttonDiv {
@@ -95,7 +97,10 @@ Marrakech, Morocco</textarea><br>
 
       document.getElementById("geocodeButton").addEventListener("click", async function () {
         const addressText = document.getElementById("addressTextArea").value;
-        const addresses = addressText.split("\n");
+        const addresses = addressText
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line);
         const resultBody = document.getElementById("resultBody");
 
         // Clear previous results, markers, and selected row

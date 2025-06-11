@@ -22,7 +22,7 @@ Batch Geocoder is a simple, frontend-only web application that allows users to c
 ## Limitations
 
 - **Rate Limiting**: Nominatim has its own usage policies. Heavy usage may require a backend to handle API requests more responsibly.
-- **No Error Handling**: The current version does not handle cases where no results are returned for an address.
+- **Minimal Error Handling**: Addresses that return no results are listed after geocoding, but network errors are not yet handled.
 
 ## Future Enhancements
 
