@@ -81,6 +81,9 @@ Marrakech, Morocco</textarea><br>
     let map; // Variable to hold the Leaflet map object
     let markers = []; // Array to store marker objects
     let selectedRow; // Store the selected row
+    let editingRow; // Store which row is being edited
+    let editingMarker; // Store marker in edit mode
+    let mapClickHandler; // Track map click handler for editing
     let failedAddresses = []; // Add a new array for failed addresses
 
     function initMap() {
@@ -113,6 +116,14 @@ Marrakech, Morocco</textarea><br>
           selectedRow.classList.remove("highlight");
         }
 
+        // Reset editing state and map click handler
+        if (mapClickHandler) {
+          map.off("click", mapClickHandler);
+          mapClickHandler = null;
+        }
+        editingRow = null;
+        editingMarker = null;
+
         failedAddresses = []; // reset
 
         for (const address of addresses) {
@@ -131,12 +142,16 @@ Marrakech, Morocco</textarea><br>
           }
 
           const newRow = resultBody.insertRow(-1);
+          const latitude = parseFloat(data[0].lat);
+          const longitude = parseFloat(data[0].lon);
           newRow.insertCell(0).innerText = address;
-          newRow.insertCell(1).innerText = data[0].lat;
-          newRow.insertCell(2).innerText = data[0].lon;
+          newRow.insertCell(1).innerText = latitude;
+          newRow.insertCell(2).innerText = longitude;
 
           // Create a marker for the latitude and longitude
-          const marker = L.marker([data[0].lat, data[0].lon]).addTo(map);
+          const marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+          marker.dragging.disable();
+          newRow._marker = marker;
           markers.push(marker);
 
           // Add click event to marker
@@ -150,6 +165,7 @@ Marrakech, Morocco</textarea><br>
             // Center and zoom halfway to the marker
             const markerLatLng = marker.getLatLng();
             map.setView(markerLatLng, map.getZoom() + 2);
+            startRowEditing(newRow, marker);
           });
 
           // Add click event to table row
@@ -163,6 +179,13 @@ Marrakech, Morocco</textarea><br>
             // Center and zoom halfway to the marker
             const markerLatLng = marker.getLatLng();
             map.setView(markerLatLng, 10);
+            startRowEditing(newRow, marker);
+          });
+
+          marker.on("dragend", function (event) {
+            if (editingRow === newRow) {
+              updateRowCoordinates(newRow, event.target.getLatLng());
+            }
           });
         }
 
@@ -196,6 +219,13 @@ Marrakech, Morocco</textarea><br>
         if (selectedRow) {
           selectedRow.classList.remove("highlight");
         }
+
+        if (mapClickHandler) {
+          map.off("click", mapClickHandler);
+          mapClickHandler = null;
+        }
+        editingRow = null;
+        editingMarker = null;
       });
 
       document.getElementById("saveCSVButton").addEventListener("click", function () {
@@ -275,10 +305,68 @@ Marrakech, Morocco</textarea><br>
         textarea.value = lines.slice(0, maxLines).join('\n');
       }
     }
+
+    function startRowEditing(row, marker) {
+      if (editingMarker && editingMarker !== marker && editingMarker.dragging) {
+        editingMarker.dragging.disable();
+      }
+
+      editingRow = row;
+      editingMarker = marker;
+
+      if (marker.dragging) {
+        marker.dragging.enable();
+      }
+
+      attachMapClickHandler();
+      showEditHelper(row.cells[0].innerText);
+    }
+
+    function attachMapClickHandler() {
+      if (mapClickHandler) {
+        map.off("click", mapClickHandler);
+      }
+
+      mapClickHandler = function (event) {
+        if (!editingMarker || !editingRow) {
+          return;
+        }
+
+        editingMarker.setLatLng(event.latlng);
+        updateRowCoordinates(editingRow, event.latlng);
+      };
+
+      map.on("click", mapClickHandler);
+    }
+
+    function updateRowCoordinates(row, latLng) {
+      const formattedLat = Number(latLng.lat).toFixed(6);
+      const formattedLng = Number(latLng.lng).toFixed(6);
+      row.cells[1].innerText = formattedLat;
+      row.cells[2].innerText = formattedLng;
+    }
+
+    function showEditHelper(placeName) {
+      let helperDiv = document.getElementById("editHelper");
+      if (!helperDiv) {
+        helperDiv = document.createElement("div");
+        helperDiv.id = "editHelper";
+        document.getElementById("buttonDiv").insertAdjacentElement("afterend", helperDiv);
+      }
+
+      helperDiv.innerText = `Editing \"${placeName}\" — click on the map or drag the marker to refine the location.`;
+    }
   </script>
   <style>
     .highlight {
       background-color: #ffff99;
+    }
+
+    #editHelper {
+      text-align: center;
+      margin: 0.5em auto;
+      color: #333;
+      font-weight: bold;
     }
   </style>
 </body>
